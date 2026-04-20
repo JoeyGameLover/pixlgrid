@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pixlgrid</title>
-    
+
     <link rel="icon" type="image/png" href="pixlgrid favicon.png">
 
     <style>
@@ -30,11 +30,11 @@
 
         body.light-theme {
             /* Light Mode (Pastel Palette) */
-            --bg-main: #f4f0ea; 
+            --bg-main: #f4f0ea;
             --text-main: #3d3b39;
             --text-muted: #666;
-            --panel-bg: #fffcf9; 
-            --input-bg: #e5e8ed; 
+            --panel-bg: #fffcf9;
+            --input-bg: #e5e8ed;
             --input-hover: #d2d6df;
             --border-color: #cfd3db;
             --canvas-border: #b8bcc4;
@@ -56,12 +56,13 @@
             align-items: center;
             padding: 20px;
             transition: background-color 0.3s ease, color 0.3s ease;
+            margin: 0;
         }
 
         /* Branding Styles */
         .logo-container {
             margin-bottom: 20px;
-            height: 80px; 
+            height: 80px;
             display: flex;
             justify-content: center;
         }
@@ -69,12 +70,11 @@
             height: 100%;
             object-fit: contain;
         }
-        
-        /* Hide light logo in dark mode, and vice versa */
+
         #logo-light { display: none; }
         body.light-theme #logo-dark { display: none; }
         body.light-theme #logo-light { display: block; }
-        
+
         h3 {
             margin: 0 0 10px 0;
             color: var(--text-main);
@@ -109,6 +109,7 @@
         input[type="file"] {
             color: var(--text-muted);
             font-size: 13px;
+            max-width: 100%;
         }
         input[type="file"]::file-selector-button {
             font-family: inherit;
@@ -125,7 +126,6 @@
             background-color: var(--input-hover);
         }
 
-        /* Custom Rounded Checkboxes */
         input[type="checkbox"] {
             appearance: none;
             -webkit-appearance: none;
@@ -159,6 +159,7 @@
             transform: translate(-50%, -50%);
         }
 
+        /* Desktop Top Controls */
         .controls {
             background: var(--panel-bg);
             padding: 20px 30px;
@@ -168,10 +169,13 @@
             gap: 30px;
             align-items: flex-end;
             flex-wrap: wrap;
+            justify-content: center;
             box-shadow: 0 8px 16px var(--shadow-color);
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            max-width: 90vw;
+            box-sizing: border-box;
         }
-        
+
         .control-group {
             display: flex;
             flex-direction: column;
@@ -215,35 +219,65 @@
             text-align: center;
         }
 
-        /* Canvas & Rendering Layout */
+        /* View Toggles */
+        .toggle-controls {
+            background: var(--panel-bg);
+            padding: 15px 30px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Canvas Layout */
         #canvasContainer {
-            overflow: auto;
-            width: 90vw;
-            max-height: 70vh;
+            overflow: hidden;
+            width: 800px; /* Default desktop max width */
+            max-width: 90vw;
+            height: 70vh; /* Scaled well for desktop */
             border: 2px solid var(--canvas-border);
             border-radius: 8px;
             background: var(--canvas-bg);
             transition: border-color 0.3s ease, background-color 0.3s ease;
+            position: relative;
+            touch-action: none;
+            cursor: grab;
         }
+        #canvasContainer:active {
+            cursor: grabbing;
+        }
+
         canvas {
             display: block;
-            image-rendering: pixelated; 
-            margin: auto; 
+            image-rendering: pixelated;
+            transform-origin: 0 0;
+            will-change: transform;
         }
-        
+
+        /* Palette Styling */
         .palette-section {
             display: flex;
             gap: 40px;
             margin-bottom: 20px;
             flex-wrap: wrap;
             justify-content: center;
+            text-align: center;
         }
+
         .palette-preview {
             display: grid;
             grid-template-columns: repeat(12, 20px);
             gap: 3px;
             margin-top: 10px;
+            justify-content: center;
         }
+
         .color-swatch {
             width: 20px;
             height: 20px;
@@ -267,27 +301,32 @@
             border: 2px solid #FFF;
             transform: scale(1.2);
             z-index: 10;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
-        
+
+        /* Used Colors Container */
         #usedColorsContainer {
-            display: none; 
-            padding: 12px 16px;
+            display: none;
+            padding: 20px 30px;
             background: var(--panel-bg);
             border-radius: 12px;
             border: 1px solid var(--border-color);
             box-shadow: 0 4px 8px var(--shadow-color);
             transition: background-color 0.3s ease, border-color 0.3s ease;
+            margin-top: 20px;
+            max-width: 90vw;
+            box-sizing: border-box;
+            text-align: center;
         }
         #usedColorsPreview {
             display: flex;
             flex-wrap: wrap;
-            max-width: 280px; 
+            justify-content: center;
             gap: 4px;
             margin-top: 10px;
         }
 
-        /* Bottom Theme Toggle */
+        /* Theme Toggle */
         .theme-toggle-container {
             margin-top: 40px;
             margin-bottom: 20px;
@@ -308,340 +347,498 @@
             background-color: var(--input-hover);
             transform: translateY(-2px);
         }
+
+        /* =====================================================================
+           MOBILE RESPONSIVE OVERRIDES
+           When the screen is 768px or smaller, these rules dynamically apply
+           ===================================================================== */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                padding: 20px 15px;
+            }
+            .control-group {
+                width: 100%;
+                align-items: center;
+                text-align: center;
+            }
+            #canvasContainer {
+                height: 55vh; /* slightly shorter to allow scrolling UI */
+                width: 95vw;
+            }
+            .toggle-controls {
+                width: 95vw;
+                gap: 15px;
+                padding: 15px 10px;
+            }
+            #usedColorsContainer {
+                width: 95vw;
+                padding: 15px 10px;
+            }
+            #usedColorsPreview {
+                gap: 8px; /* Extra spacing for fat fingers */
+            }
+            /* Make swatches bigger and easier to tap on mobile */
+            #usedColorsPreview .color-swatch {
+                width: 36px;
+                height: 36px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: bold;
+                text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="logo-container">
-        <img src="pixlgrid dark mode.png" id="logo-dark" alt="Pixlgrid">
-        <img src="pixlgrid light mode.png" id="logo-light" alt="Pixlgrid">
+<div class="logo-container">
+    <img src="pixlgrid dark mode.png" id="logo-dark" alt="Pixlgrid">
+    <img src="pixlgrid light mode.png" id="logo-light" alt="Pixlgrid">
+</div>
+
+<div class="controls">
+    <div class="control-group">
+        <label for="imageUpload">Upload Image:</label>
+        <input type="file" id="imageUpload" accept="image/*">
     </div>
 
-    <div class="controls">
-        <div class="control-group">
-            <label for="imageUpload">Upload Image:</label>
-            <input type="file" id="imageUpload" accept="image/*">
-        </div>
-
-        <div class="control-group">
-            <label for="imageFit">Image Fit:</label>
-            <select id="imageFit">
-                <option value="crop">Crop to Center</option>
-                <option value="squash">Squash to Fit</option>
-            </select>
-        </div>
-        
-        <div class="control-group">
-            <label for="brushSize">Brush / Block Size:</label>
-            <select id="brushSize">
-                <option value="1">1 px</option>
-                <option value="4">4 px</option>
-                <option value="8">8 px</option>
-                <option value="16">16 px</option>
-            </select>
-        </div>
-
-        <div class="control-group" style="justify-content: center;">
-            <label for="showGrid">
-                <input type="checkbox" id="showGrid" checked> Show Grid
-            </label>
-            <label for="colorByNumbers">
-                <input type="checkbox" id="colorByNumbers"> Show Color by Numbers
-            </label>
-        </div>
-
-        <div class="control-group">
-            <label style="margin-bottom: 4px;">Zoom View:</label>
-            <div class="zoom-controls">
-                <button id="zoomOutBtn">-</button>
-                <span id="zoomLevelDisplay">100%</span>
-                <button id="zoomInBtn">+</button>
-            </div>
-        </div>
+    <div class="control-group">
+        <label for="importMode">Image Fit:</label>
+        <select id="importMode">
+            <option value="crop">Crop to Center</option>
+            <option value="squash">Squash to Fit</option>
+        </select>
     </div>
 
-    <div class="palette-section">
-        <div>
-            <h3>Master Palette Map</h3>
-            <div class="palette-preview" id="palettePreview"></div>
+    <div class="control-group">
+        <label for="brushSize">Brush / Block Size:</label>
+        <select id="brushSize">
+            <option value="1">1 px</option>
+            <option value="4">4 px</option>
+            <option value="8">8 px</option>
+            <option value="16">16 px</option>
+        </select>
+    </div>
+
+    <div class="control-group">
+        <label style="margin-bottom: 4px;">Zoom View:</label>
+        <div class="zoom-controls">
+            <button id="zoomOutBtn">-</button>
+            <span id="zoomLevelDisplay">100%</span>
+            <button id="zoomInBtn">+</button>
         </div>
-
-        <div id="usedColorsContainer">
-            <h3>Colors Used (Click to Highlight)</h3>
-            <div id="usedColorsPreview"></div>
-        </div>
     </div>
+</div>
 
-    <div id="canvasContainer">
-        <canvas id="mainCanvas"></canvas>
+<div class="palette-section">
+    <div>
+        <h3>Master Palette Map</h3>
+        <div class="palette-preview" id="palettePreview"></div>
     </div>
+</div>
 
-    <div class="theme-toggle-container">
-        <button id="themeToggleBtn">☀️ Switch to Light Mode</button>
-    </div>
+<div id="canvasContainer">
+    <canvas id="mainCanvas"></canvas>
+</div>
 
-    <script>
-        const rawPalette = [
-          ["#FFFFFF","#FAFDFE","#FAFDFE","#F9FFFF","#FBFFFD","#FBFFFA","#FCFFF9","#FFFFF9","#FFFEF9","#FEFCF9","#FFF9E9", "#FE2500"],
-          ["#F8F8F8","#DDD8F6","#D6DCF2","#D7F5FF","#D8FCE4","#D7E8D6","#E8F9D5","#FFFED3","#FFE5D7","#FAD8D8","#F0DFBE", "#FFFB01"],
-          ["#E3E3E0","#B7A5E7","#A4B0E3","#A1E5FF","#9FF4C9","#A2CEA1","#CBEEA2","#FEFC9C","#FFC5A0","#EFA7A3","#DBB985", "#02F901"],
-          ["#CACCCA","#752BD2","#015BCF","#00D2FF","#00E8A2","#01AA00","#A2E201","#FFFB00","#FE9401","#E32100","#A67301", "#02FDFF"],
-          ["#AEAEAC","#6524B8","#004CB7","#00B7E6","#01CD8C","#029300","#8FC600","#E1DF00","#E38100","#C51F00","#885001", "#0432FF"],
-          ["#848484","#4E1C95","#003E94","#0196BD","#01A56E","#007602","#70A000","#B8B400","#BA6700","#A21400","#6E4305", "#9837FF"],
-          ["#020202","#290C58","#001A58","#005A6F","#006540","#004600","#416201","#716F00","#733700","#600B00","#44280B", "#FF38D1"]
-        ];
+<div class="toggle-controls">
+    <label for="showGrid">
+        <input type="checkbox" id="showGrid" checked> Show Grid
+    </label>
+    <label for="colorByNumbers">
+        <input type="checkbox" id="colorByNumbers"> Show Color by Numbers
+    </label>
+</div>
 
-        const palette = [];
-        let colorId = 1;
-        const previewContainer = document.getElementById('palettePreview');
+<div id="usedColorsContainer">
+    <h3>Colors Used (Click to Highlight)</h3>
+    <div id="usedColorsPreview"></div>
+</div>
 
-        rawPalette.forEach(row => {
-            row.forEach(hex => {
-                const r = parseInt(hex.slice(1, 3), 16);
-                const g = parseInt(hex.slice(3, 5), 16);
-                const b = parseInt(hex.slice(5, 7), 16);
-                palette.push({ hex, r, g, b, id: colorId });
+<div class="theme-toggle-container">
+    <button id="themeToggleBtn">☀️ Switch to Light Mode</button>
+</div>
 
+<script>
+    const rawPalette = [
+      ["#FFFFFF","#FAFDFE","#FAFDFE","#F9FFFF","#FBFFFD","#FBFFFA","#FCFFF9","#FFFFF9","#FFFEF9","#FEFCF9","#FFF9E9", "#FE2500"],
+      ["#F8F8F8","#DDD8F6","#D6DCF2","#D7F5FF","#D8FCE4","#D7E8D6","#E8F9D5","#FFFED3","#FFE5D7","#FAD8D8","#F0DFBE", "#FFFB01"],
+      ["#E3E3E0","#B7A5E7","#A4B0E3","#A1E5FF","#9FF4C9","#A2CEA1","#CBEEA2","#FEFC9C","#FFC5A0","#EFA7A3","#DBB985", "#02F901"],
+      ["#CACCCA","#752BD2","#015BCF","#00D2FF","#00E8A2","#01AA00","#A2E201","#FFFB00","#FE9401","#E32100","#A67301", "#02FDFF"],
+      ["#AEAEAC","#6524B8","#004CB7","#00B7E6","#01CD8C","#029300","#8FC600","#E1DF00","#E38100","#C51F00","#885001", "#0432FF"],
+      ["#848484","#4E1C95","#003E94","#0196BD","#01A56E","#007602","#70A000","#B8B400","#BA6700","#A21400","#6E4305", "#9837FF"],
+      ["#020202","#290C58","#001A58","#005A6F","#006540","#004600","#416201","#716F00","#733700","#600B00","#44280B", "#FF38D1"]
+    ];
+
+    const palette = [];
+    let colorId = 1;
+    const previewContainer = document.getElementById('palettePreview');
+
+    rawPalette.forEach(row => {
+        row.forEach(hex => {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            palette.push({ hex, r, g, b, id: colorId });
+
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.backgroundColor = hex;
+            swatch.title = `ID: ${colorId} | ${hex}`;
+            swatch.innerText = colorId;
+            previewContainer.appendChild(swatch);
+            colorId++;
+        });
+    });
+
+    function getNearestColor(r, g, b) {
+        let minDistance = Infinity;
+        let nearest = palette[0];
+        for (const color of palette) {
+            const dist = Math.pow(color.r - r, 2) + Math.pow(color.g - g, 2) + Math.pow(color.b - b, 2);
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearest = color;
+            }
+        }
+        return nearest;
+    }
+
+    const imageUpload = document.getElementById('imageUpload');
+    const importModeSelect = document.getElementById('importMode');
+    const brushSizeSelect = document.getElementById('brushSize');
+    const colorByNumbersCheck = document.getElementById('colorByNumbers');
+    const showGridCheck = document.getElementById('showGrid');
+    const canvasContainer = document.getElementById('canvasContainer');
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const usedColorsContainer = document.getElementById('usedColorsContainer');
+    const usedColorsPreview = document.getElementById('usedColorsPreview');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomLevelDisplay = document.getElementById('zoomLevelDisplay');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+    let currentImage = null;
+    let pixelData = [];
+    let usedColorIds = new Set();
+    let highlightedColorId = null;
+    let isLightMode = false;
+    let baseCanvasSize = 300;
+
+    // Pan and Zoom Variables
+    let currentZoom = 1.0;
+    let panX = 0;
+    let panY = 0;
+
+    // Theme Toggle Logic
+    themeToggleBtn.addEventListener('click', () => {
+        isLightMode = !isLightMode;
+        document.body.classList.toggle('light-theme', isLightMode);
+        themeToggleBtn.innerText = isLightMode ? "🌙 Switch to Dark Mode" : "☀️ Switch to Light Mode";
+    });
+
+    // Initialize App Sizing
+    function calculateBaseSize() {
+        const padding = 10;
+        baseCanvasSize = Math.min(canvasContainer.clientWidth, canvasContainer.clientHeight) - padding;
+        if (baseCanvasSize < 100) baseCanvasSize = 300;
+        updateTransform();
+    }
+
+    window.addEventListener('resize', calculateBaseSize);
+    setTimeout(calculateBaseSize, 100);
+
+    // Apply visual updates to canvas
+    function updateTransform() {
+        zoomLevelDisplay.innerText = Math.round(currentZoom * 100) + "%";
+        canvas.style.width = baseCanvasSize + "px";
+        canvas.style.height = baseCanvasSize + "px";
+        canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+    }
+
+    // --- Physics Engine for Desktop/Mobile Panning & Zooming ---
+    function applyZoomWithFocalPoint(newZoom, focalX, focalY) {
+        const canvasFocalX = (focalX - panX) / currentZoom;
+        const canvasFocalY = (focalY - panY) / currentZoom;
+        currentZoom = newZoom;
+        panX = focalX - (canvasFocalX * currentZoom);
+        panY = focalY - (canvasFocalY * currentZoom);
+        updateTransform();
+    }
+
+    zoomInBtn.addEventListener('click', () => {
+        const newZoom = Math.min(currentZoom + 0.25, 10.0);
+        applyZoomWithFocalPoint(newZoom, canvasContainer.clientWidth / 2, canvasContainer.clientHeight / 2);
+    });
+
+    zoomOutBtn.addEventListener('click', () => {
+        const newZoom = Math.max(currentZoom - 0.25, 0.1);
+        applyZoomWithFocalPoint(newZoom, canvasContainer.clientWidth / 2, canvasContainer.clientHeight / 2);
+    });
+
+    let isMouseDown = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+
+    canvasContainer.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isMouseDown) return;
+        panX += (e.clientX - lastMouseX);
+        panY += (e.clientY - lastMouseY);
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => isMouseDown = false);
+
+    canvasContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (e.ctrlKey || e.metaKey) {
+            const rect = canvasContainer.getBoundingClientRect();
+            const pointerX = e.clientX - rect.left;
+            const pointerY = e.clientY - rect.top;
+            const zoomAmount = e.deltaY * -0.005;
+            const newZoom = Math.max(0.1, Math.min(currentZoom + zoomAmount, 10.0));
+
+            if (newZoom !== currentZoom) {
+                applyZoomWithFocalPoint(newZoom, pointerX, pointerY);
+            }
+        } else {
+            panX -= e.deltaX;
+            panY -= e.deltaY;
+            updateTransform();
+        }
+    }, { passive: false });
+
+    let initialPinchDistance = null;
+    let initialZoom = 1;
+    let pinchFocalX = 0;
+    let pinchFocalY = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+
+    canvasContainer.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+            initialPinchDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            initialZoom = currentZoom;
+            const rect = canvasContainer.getBoundingClientRect();
+            const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+            const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+            pinchFocalX = (centerX - panX) / currentZoom;
+            pinchFocalY = (centerY - panY) / currentZoom;
+        }
+    }, { passive: false });
+
+    canvasContainer.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && !initialPinchDistance) {
+            panX += (e.touches[0].clientX - lastTouchX);
+            panY += (e.touches[0].clientY - lastTouchY);
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+            updateTransform();
+        } else if (e.touches.length === 2 && initialPinchDistance) {
+            const currentDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            const scale = currentDistance / initialPinchDistance;
+            currentZoom = Math.max(0.1, Math.min(initialZoom * scale, 10.0));
+            const rect = canvasContainer.getBoundingClientRect();
+            const currentCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+            const currentCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+            panX = currentCenterX - (pinchFocalX * currentZoom);
+            panY = currentCenterY - (pinchFocalY * currentZoom);
+            updateTransform();
+        }
+    }, { passive: false });
+
+    canvasContainer.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) {
+            initialPinchDistance = null;
+            if (e.touches.length === 1) {
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+            }
+        }
+    });
+
+    // --- Image Processing ---
+    imageUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                currentImage = img;
+                processImage();
+                calculateBaseSize();
+                currentZoom = 1.0;
+                panX = (canvasContainer.clientWidth - baseCanvasSize) / 2;
+                panY = (canvasContainer.clientHeight - baseCanvasSize) / 2;
+                updateTransform();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    importModeSelect.addEventListener('change', processImage);
+    brushSizeSelect.addEventListener('change', processImage);
+    colorByNumbersCheck.addEventListener('change', renderCanvas);
+    showGridCheck.addEventListener('change', renderCanvas);
+
+    function processImage() {
+        if (!currentImage) return;
+
+        highlightedColorId = null;
+        pixelData = [];
+        usedColorIds.clear();
+
+        const gridRes = 256;
+        const brushSize = parseInt(brushSizeSelect.value);
+        const importMode = importModeSelect.value;
+
+        const offscreen = document.createElement('canvas');
+        offscreen.width = gridRes;
+        offscreen.height = gridRes;
+        const offCtx = offscreen.getContext('2d');
+
+        if (importMode === 'crop') {
+            const size = Math.min(currentImage.width, currentImage.height);
+            const startX = (currentImage.width - size) / 2;
+            const startY = (currentImage.height - size) / 2;
+            offCtx.drawImage(currentImage, startX, startY, size, size, 0, 0, gridRes, gridRes);
+        } else {
+            offCtx.drawImage(currentImage, 0, 0, gridRes, gridRes);
+        }
+
+        const imageData = offCtx.getImageData(0, 0, gridRes, gridRes);
+        const data = imageData.data;
+
+        for (let y = 0; y < gridRes; y += brushSize) {
+            for (let x = 0; x < gridRes; x += brushSize) {
+                const pX = Math.min(x + Math.floor(brushSize/2), gridRes - 1);
+                const pY = Math.min(y + Math.floor(brushSize/2), gridRes - 1);
+                const index = (pY * gridRes + pX) * 4;
+                const r = data[index];
+                const g = data[index + 1];
+                const b = data[index + 2];
+                const a = data[index + 3];
+
+                if (a < 128) continue;
+
+                const nearest = getNearestColor(r, g, b);
+                usedColorIds.add(nearest.id);
+                pixelData.push({ x, y, nearest });
+            }
+        }
+
+        updateUsedColorsUI();
+        renderCanvas();
+    }
+
+    function updateUsedColorsUI() {
+        if (usedColorIds.size === 0) {
+            usedColorsContainer.style.display = 'none';
+            return;
+        }
+
+        usedColorsContainer.style.display = 'block';
+        usedColorsPreview.innerHTML = '';
+
+        const sortedIds = Array.from(usedColorIds).sort((a, b) => a - b);
+
+        sortedIds.forEach(id => {
+            const colorDef = palette.find(p => p.id === id);
+            if (colorDef) {
                 const swatch = document.createElement('div');
                 swatch.className = 'color-swatch';
-                swatch.style.backgroundColor = hex;
-                swatch.title = `ID: ${colorId} | ${hex}`;
-                swatch.innerText = colorId;
-                previewContainer.appendChild(swatch);
-                colorId++;
-            });
-        });
 
-        function getNearestColor(r, g, b) {
-            let minDistance = Infinity;
-            let nearest = palette[0];
-            for (const color of palette) {
-                const dist = Math.pow(color.r - r, 2) + Math.pow(color.g - g, 2) + Math.pow(color.b - b, 2);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    nearest = color;
+                if (highlightedColorId === id) {
+                    swatch.classList.add('selected');
                 }
-            }
-            return nearest;
-        }
 
-        const imageUpload = document.getElementById('imageUpload');
-        const imageFitSelect = document.getElementById('imageFit');
-        const brushSizeSelect = document.getElementById('brushSize');
-        const colorByNumbersCheck = document.getElementById('colorByNumbers');
-        const showGridCheck = document.getElementById('showGrid');
-        const canvas = document.getElementById('mainCanvas');
-        const ctx = canvas.getContext('2d');
-        const usedColorsContainer = document.getElementById('usedColorsContainer');
-        const usedColorsPreview = document.getElementById('usedColorsPreview');
-        const zoomInBtn = document.getElementById('zoomInBtn');
-        const zoomOutBtn = document.getElementById('zoomOutBtn');
-        const zoomLevelDisplay = document.getElementById('zoomLevelDisplay');
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
+                swatch.style.backgroundColor = colorDef.hex;
+                swatch.title = `ID: ${colorDef.id} | ${colorDef.hex}`;
+                swatch.innerText = colorDef.id;
 
-        let currentImage = null;
-        let pixelData = []; 
-        let usedColorIds = new Set();
-        let highlightedColorId = null;
-        let currentZoom = 1.0;
-        let isLightMode = false;
-
-        // Theme Toggle Logic
-        themeToggleBtn.addEventListener('click', () => {
-            isLightMode = !isLightMode;
-            document.body.classList.toggle('light-theme', isLightMode);
-            themeToggleBtn.innerText = isLightMode ? "🌙 Switch to Dark Mode" : "☀️ Switch to Light Mode";
-        });
-
-        imageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    currentImage = img;
-                    processImage();
+                swatch.onclick = () => {
+                    highlightedColorId = highlightedColorId === id ? null : id;
+                    updateUsedColorsUI();
+                    renderCanvas();
                 };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+
+                usedColorsPreview.appendChild(swatch);
+            }
         });
+    }
 
-        imageFitSelect.addEventListener('change', processImage);
-        brushSizeSelect.addEventListener('change', processImage);
-        colorByNumbersCheck.addEventListener('change', renderCanvas);
-        showGridCheck.addEventListener('change', renderCanvas);
+    function renderCanvas() {
+        if (pixelData.length === 0) return;
 
-        zoomInBtn.addEventListener('click', () => {
-            if (currentZoom < 5.0) currentZoom += 0.25;
-            updateZoomCSS();
-        });
+        const gridRes = 256;
+        const brushSize = parseInt(brushSizeSelect.value);
+        const showNumbers = colorByNumbersCheck.checked;
+        const showGrid = showGridCheck.checked;
 
-        zoomOutBtn.addEventListener('click', () => {
-            if (currentZoom > 0.25) currentZoom -= 0.25;
-            updateZoomCSS();
-        });
+        const internalScaleFactor = (showNumbers || showGrid) ? 12 : 3;
+        canvas.width = gridRes * internalScaleFactor;
+        canvas.height = gridRes * internalScaleFactor;
 
-        function updateZoomCSS() {
-            zoomLevelDisplay.innerText = Math.round(currentZoom * 100) + "%";
-            canvas.style.width = (512 * currentZoom) + "px";
-            canvas.style.height = (512 * currentZoom) + "px";
-        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `bold ${brushSize * internalScaleFactor * 0.55}px Arial`;
 
-        function processImage() {
-            if (!currentImage) return;
+        pixelData.forEach(pixel => {
+            const { x, y, nearest } = pixel;
 
-            highlightedColorId = null;
-            pixelData = [];
-            usedColorIds.clear();
+            const isHighlighted = highlightedColorId === null || nearest.id === highlightedColorId;
+            ctx.globalAlpha = isHighlighted ? 1.0 : 0.15;
 
-            const gridRes = 256; 
-            const brushSize = parseInt(brushSizeSelect.value);
-            const fitMode = imageFitSelect.value;
+            ctx.fillStyle = nearest.hex;
+            ctx.fillRect(x * internalScaleFactor, y * internalScaleFactor, brushSize * internalScaleFactor, brushSize * internalScaleFactor);
 
-            const offscreen = document.createElement('canvas');
-            offscreen.width = gridRes;
-            offscreen.height = gridRes;
-            const offCtx = offscreen.getContext('2d');
-            
-            // Handle Cropping vs Squashing
-            if (fitMode === 'squash') {
-                offCtx.drawImage(currentImage, 0, 0, gridRes, gridRes);
-            } else { // Crop to Center
-                const imgRatio = currentImage.width / currentImage.height;
-                const canvasRatio = 1; // Square canvas
-                
-                let sWidth = currentImage.width;
-                let sHeight = currentImage.height;
-                let sx = 0;
-                let sy = 0;
-
-                if (imgRatio > canvasRatio) {
-                    // Image is wider than a square
-                    sWidth = currentImage.height;
-                    sx = (currentImage.width - sWidth) / 2;
-                } else {
-                    // Image is taller than a square
-                    sHeight = currentImage.width;
-                    sy = (currentImage.height - sHeight) / 2;
-                }
-                
-                offCtx.drawImage(currentImage, sx, sy, sWidth, sHeight, 0, 0, gridRes, gridRes);
+            if (showGrid) {
+                ctx.strokeStyle = isHighlighted ? "rgba(128,128,128,0.35)" : "rgba(128,128,128,0.1)";
+                ctx.lineWidth = Math.max(1, internalScaleFactor / 4);
+                ctx.strokeRect(x * internalScaleFactor, y * internalScaleFactor, brushSize * internalScaleFactor, brushSize * internalScaleFactor);
             }
 
-            const imageData = offCtx.getImageData(0, 0, gridRes, gridRes);
-            const data = imageData.data;
+            const shouldDrawText = showNumbers && isHighlighted && (highlightedColorId === null || nearest.id === highlightedColorId);
 
-            for (let y = 0; y < gridRes; y += brushSize) {
-                for (let x = 0; x < gridRes; x += brushSize) {
-                    
-                    const pX = Math.min(x + Math.floor(brushSize/2), gridRes - 1);
-                    const pY = Math.min(y + Math.floor(brushSize/2), gridRes - 1);
-                    
-                    const index = (pY * gridRes + pX) * 4;
-                    const r = data[index];
-                    const g = data[index + 1];
-                    const b = data[index + 2];
-                    const a = data[index + 3];
-
-                    if (a < 128) continue; 
-
-                    const nearest = getNearestColor(r, g, b);
-                    usedColorIds.add(nearest.id);
-
-                    pixelData.push({ x, y, nearest });
-                }
+            if (shouldDrawText) {
+                const brightness = (nearest.r * 299 + nearest.g * 587 + nearest.b * 114) / 1000;
+                ctx.fillStyle = brightness > 125 ? "rgba(0,0,0,0.8)" : "rgba(255,255,255,0.9)";
+                ctx.fillText(
+                    nearest.id,
+                    (x + brushSize/2) * internalScaleFactor,
+                    (y + brushSize/2) * internalScaleFactor
+                );
             }
 
-            updateUsedColorsUI();
-            updateZoomCSS(); 
-            renderCanvas();
-        }
-
-        function updateUsedColorsUI() {
-            if (usedColorIds.size === 0) {
-                usedColorsContainer.style.display = 'none';
-                return;
-            }
-
-            usedColorsContainer.style.display = 'block';
-            usedColorsPreview.innerHTML = ''; 
-
-            const sortedIds = Array.from(usedColorIds).sort((a, b) => a - b);
-
-            sortedIds.forEach(id => {
-                const colorDef = palette.find(p => p.id === id);
-                if (colorDef) {
-                    const swatch = document.createElement('div');
-                    swatch.className = 'color-swatch';
-                    
-                    if (highlightedColorId === id) {
-                        swatch.classList.add('selected');
-                    }
-
-                    swatch.style.backgroundColor = colorDef.hex;
-                    swatch.title = `ID: ${colorDef.id} | ${colorDef.hex}`;
-                    swatch.innerText = colorDef.id;
-                    
-                    swatch.onclick = () => {
-                        highlightedColorId = highlightedColorId === id ? null : id;
-                        updateUsedColorsUI(); 
-                        renderCanvas(); 
-                    };
-
-                    usedColorsPreview.appendChild(swatch);
-                }
-            });
-        }
-
-        function renderCanvas() {
-            if (pixelData.length === 0) return;
-
-            const gridRes = 256;
-            const brushSize = parseInt(brushSizeSelect.value);
-            const showNumbers = colorByNumbersCheck.checked;
-            const showGrid = showGridCheck.checked;
-
-            const internalScaleFactor = (showNumbers || showGrid) ? 12 : 3; 
-            canvas.width = gridRes * internalScaleFactor;
-            canvas.height = gridRes * internalScaleFactor;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.font = `bold ${brushSize * internalScaleFactor * 0.55}px Arial`; 
-
-            pixelData.forEach(pixel => {
-                const { x, y, nearest } = pixel;
-
-                const isHighlighted = highlightedColorId === null || nearest.id === highlightedColorId;
-                ctx.globalAlpha = isHighlighted ? 1.0 : 0.15;
-
-                ctx.fillStyle = nearest.hex;
-                ctx.fillRect(x * internalScaleFactor, y * internalScaleFactor, brushSize * internalScaleFactor, brushSize * internalScaleFactor);
-
-                if (showGrid) {
-                    ctx.strokeStyle = isHighlighted ? "rgba(128,128,128,0.35)" : "rgba(128,128,128,0.1)";
-                    ctx.lineWidth = Math.max(1, internalScaleFactor / 4);
-                    ctx.strokeRect(x * internalScaleFactor, y * internalScaleFactor, brushSize * internalScaleFactor, brushSize * internalScaleFactor);
-                }
-
-                const shouldDrawText = showNumbers && isHighlighted && (highlightedColorId === null || nearest.id === highlightedColorId);
-
-                if (shouldDrawText) {
-                    const brightness = (nearest.r * 299 + nearest.g * 587 + nearest.b * 114) / 1000;
-                    ctx.fillStyle = brightness > 125 ? "rgba(0,0,0,0.8)" : "rgba(255,255,255,0.9)";
-                    ctx.fillText(
-                        nearest.id, 
-                        (x + brushSize/2) * internalScaleFactor, 
-                        (y + brushSize/2) * internalScaleFactor
-                    );
-                }
-                
-                ctx.globalAlpha = 1.0; 
-            });
-        }
-    </script>
+            ctx.globalAlpha = 1.0;
+        });
+    }
+</script>
 </body>
 </html>
